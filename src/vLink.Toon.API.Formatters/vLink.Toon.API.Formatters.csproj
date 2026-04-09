@@ -1,0 +1,37 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>net8.0;net10.0</TargetFrameworks>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <LangVersion>latest</LangVersion>
+    <RootNamespace>vLink.Toon.API.Formatters</RootNamespace>
+    <AssemblyName>vLink.Toon.API.Formatters</AssemblyName>
+
+    <PackageId>vLink.Toon.API.Formatters</PackageId>
+    <Version>0.1.0</Version>
+    <Authors>Þorvaldur Hafdal</Authors>
+    <Company>vLink</Company>
+    <Description>ASP.NET Core MVC formatters and service registration extensions for TOON payloads.</Description>
+    <PackageTags>toon;aspnetcore;mvc;formatters;webapi;serialization</PackageTags>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageProjectUrl>https://vlink-team.atlassian.net/wiki/spaces/TA/</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/vhafdal/vLink.Toon.API.Formatters</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <SignAssembly>true</SignAssembly>
+    <AssemblyOriginatorKeyFile>vLink.snk</AssemblyOriginatorKeyFile>
+    <PublicSign>true</PublicSign>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <PackageReference Include="vLink.Toon.Format" Version="0.2.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
+
+</Project>
