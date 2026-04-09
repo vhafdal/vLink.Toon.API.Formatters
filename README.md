@@ -1,35 +1,19 @@
 # vLink.Toon.API.Formatters
 
-`vLink.Toon.API.Formatters` adds ASP.NET Core MVC input and output formatters for TOON payloads.
+Repository for the `vLink.Toon.API.Formatters` package, an ASP.NET Core MVC transport-layer companion to `vLink.Toon.Format`.
 
-It is the transport-layer companion to `vLink.Toon.Format`. Use it when an ASP.NET Core API should accept and return `text/toon` or `application/toon` payloads through the normal MVC formatter pipeline.
+## Repository Layout
 
-## Installation
+- `src/vLink.Toon.API.Formatters/` contains the package source and the NuGet package README
+- `Documentation/` contains repository-level implementation and behavior notes
 
-```bash
-dotnet add package vLink.Toon.API.Formatters
-```
+## Package
 
-## Features
+The package adds ASP.NET Core MVC input and output formatters for TOON payloads so an API can accept and return `text/toon` or `application/toon` through the normal formatter pipeline.
 
-- Adds MVC `TextInputFormatter` and `TextOutputFormatter` implementations for TOON
-- Registers TOON formatters through `AddToon(...)` extension methods
-- Uses `vLink.Toon.Format` for encoding, decoding, media types, and service options
-- Supports `text/toon` and `application/toon`
+Package-facing usage and installation guidance lives in [src/vLink.Toon.API.Formatters/README.md](/home/valdi/Projects/vLink.Toon.API.Formatters/src/vLink.Toon.API.Formatters/README.md).
 
-## Basic Usage
+## Documentation
 
-```csharp
-using vLink.Toon.API.Formatters;
-
-var builder = WebApplication.CreateBuilder(args);
-
-builder.Services
-    .AddControllers()
-    .AddToon(useAsDefaultFormatter: false);
-```
-
-## Package Notes
-
-`vLink.Toon.API.Formatters` depends on `vLink.Toon.Format`.
-Use `vLink.Toon.Format` directly for non-HTTP encoding and decoding workflows.
+- [BuildConfiguration.md](/home/valdi/Projects/vLink.Toon.API.Formatters/Documentation/BuildConfiguration.md)
+- [PerRequestEncodeOptions.md](/home/valdi/Projects/vLink.Toon.API.Formatters/Documentation/PerRequestEncodeOptions.md)

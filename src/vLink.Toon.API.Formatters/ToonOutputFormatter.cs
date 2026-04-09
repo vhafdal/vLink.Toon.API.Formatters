@@ -1,4 +1,7 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using System.ComponentModel;
+using System.Globalization;
+using System.Reflection;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Formatters;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Primitives;
@@ -12,6 +15,12 @@ namespace vLink.Toon.API.Formatters;
 /// </summary>
 public sealed class ToonOutputFormatter : TextOutputFormatter
 {
+    private const string OptionHeaderPrefix = "X-Toon-Option-";
+    private static readonly IReadOnlyDictionary<string, PropertyInfo> EncodeOptionProperties = typeof(ToonEncodeOptions)
+        .GetProperties(BindingFlags.Instance | BindingFlags.Public)
+        .Where(property => property.CanRead && property.CanWrite)
+        .ToDictionary(property => property.Name, StringComparer.OrdinalIgnoreCase);
+
     /// <summary>
     /// The <c>text/toon</c> media type.
     /// </summary>
@@ -90,7 +99,7 @@ public sealed class ToonOutputFormatter : TextOutputFormatter
         OutputFormatterWriteContext context,
         Encoding selectedEncoding)
     {
-        var encodeOptions = ResolveEncodeOptions(context.HttpContext.RequestServices);
+        var encodeOptions = ResolveEncodeOptions(context.HttpContext);
         var toon = ToonEncoder.Encode(context.Object!, encodeOptions);
         await context.HttpContext.Response.WriteAsync(toon, selectedEncoding, context.HttpContext.RequestAborted);
     }
@@ -103,14 +112,94 @@ public sealed class ToonOutputFormatter : TextOutputFormatter
            (mediaType.StartsWith(MediaTypeText, StringComparison.OrdinalIgnoreCase) ||
             mediaType.StartsWith(MediaTypeApplication, StringComparison.OrdinalIgnoreCase));
 
-    private static ToonEncodeOptions ResolveEncodeOptions(IServiceProvider services)
+    private static ToonEncodeOptions ResolveEncodeOptions(HttpContext httpContext)
     {
-        var serviceOptions = services.GetService<ToonServiceOptions>();
-        if (serviceOptions is null)
+        var serviceOptions = httpContext.RequestServices.GetService<ToonServiceOptions>();
+        var encodeOptions = CloneEncodeOptions(serviceOptions?.Encode ?? ToonEncoder.DefaultOptions);
+
+        ApplyRequestOptionOverrides(encodeOptions, httpContext.Request.Headers);
+
+        return encodeOptions;
+    }
+
+    private static ToonEncodeOptions CloneEncodeOptions(ToonEncodeOptions options)
+    {
+        return new ToonEncodeOptions
         {
-            return ToonEncoder.DefaultOptions;
+            Indent = options.Indent,
+            Delimiter = options.Delimiter,
+            KeyFolding = options.KeyFolding,
+            FlattenDepth = options.FlattenDepth,
+            ObjectArrayLayout = options.ObjectArrayLayout,
+            IgnoreNullOrEmpty = options.IgnoreNullOrEmpty,
+            ExcludeEmptyArrays = options.ExcludeEmptyArrays
+        };
+    }
+
+    private static void ApplyRequestOptionOverrides(ToonEncodeOptions encodeOptions, IHeaderDictionary headers)
+    {
+        foreach (var header in headers)
+        {
+            if (!header.Key.StartsWith(OptionHeaderPrefix, StringComparison.OrdinalIgnoreCase))
+            {
+                continue;
+            }
+
+            var optionName = header.Key[OptionHeaderPrefix.Length..];
+            if (string.IsNullOrWhiteSpace(optionName) ||
+                !EncodeOptionProperties.TryGetValue(optionName, out var property) ||
+                !TryConvertHeaderValue(header.Value, property.PropertyType, out var convertedValue))
+            {
+                continue;
+            }
+
+            property.SetValue(encodeOptions, convertedValue);
+        }
+    }
+
+    private static bool TryConvertHeaderValue(StringValues values, Type targetType, out object? convertedValue)
+    {
+        convertedValue = null;
+
+        var rawValue = values.Count > 0 ? values[^1] : null;
+        if (string.IsNullOrWhiteSpace(rawValue))
+        {
+            return false;
         }
 
-        return serviceOptions.Encode;
+        var effectiveType = Nullable.GetUnderlyingType(targetType) ?? targetType;
+
+        if (effectiveType.IsEnum)
+        {
+            if (!Enum.TryParse(effectiveType, rawValue, ignoreCase: true, out var enumValue))
+            {
+                return false;
+            }
+
+            convertedValue = enumValue;
+            return true;
+        }
+
+        if (effectiveType == typeof(string))
+        {
+            convertedValue = rawValue;
+            return true;
+        }
+
+        var converter = TypeDescriptor.GetConverter(effectiveType);
+        if (!converter.CanConvertFrom(typeof(string)))
+        {
+            return false;
+        }
+
+        try
+        {
+            convertedValue = converter.ConvertFrom(null, CultureInfo.InvariantCulture, rawValue);
+            return true;
+        }
+        catch
+        {
+            return false;
+        }
     }
 }
