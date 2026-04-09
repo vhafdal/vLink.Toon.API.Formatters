@@ -71,7 +71,7 @@ public static class ToonServiceCollectionExtensions
         options.Indent = 1;
         options.Delimiter = ToonDelimiter.COMMA;
         options.KeyFolding = ToonKeyFolding.Safe;
-        options.ObjectArrayLayout = ToonObjectArrayLayout.Hybrid;
+        options.ObjectArrayLayout = ToonObjectArrayLayout.Columnar;
     }
 
     private static void AddToonFormatters(MvcOptions options, bool useAsDefaultFormatter)

@@ -1,0 +1,5 @@
+<Project>
+  <PropertyGroup>
+    <ToonFormatProjectPath Condition="'$(ToonFormatProjectPath)' == ''">$([System.Environment]::GetEnvironmentVariable('VLINK_TOON_FORMAT_CSPROJ'))</ToonFormatProjectPath>
+  </PropertyGroup>
+</Project>

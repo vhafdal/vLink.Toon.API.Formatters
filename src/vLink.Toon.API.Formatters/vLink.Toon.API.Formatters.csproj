@@ -27,7 +27,11 @@
 
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
-    <PackageReference Include="vLink.Toon.Format" Version="0.2.0" />
+    <PackageReference Include="vLink.Toon.Format" Version="0.2.0" Condition="'$(Configuration)' != 'Debug' or '$(ToonFormatProjectPath)' == ''" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(Configuration)' == 'Debug' and '$(ToonFormatProjectPath)' != ''">
+    <ProjectReference Include="$(ToonFormatProjectPath)" />
   </ItemGroup>
 
   <ItemGroup>
